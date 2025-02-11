@@ -2,12 +2,15 @@
 #include <fstream>
 #include <vector>
 #include <sstream>
+#include <algorithm>
+
 using namespace std;
 
 struct Task {
     int id;
     string description;
     string priority;
+    string dueDate;
     bool completed;
 };
 
@@ -25,6 +28,7 @@ void loadTasks() {
         getline(ss, line, ','); task.id = stoi(line);
         getline(ss, task.description, ',');
         getline(ss, task.priority, ',');
+        getline(ss, task.dueDate, ',');
         getline(ss, completedStr, ','); task.completed = (completedStr == "1");
         tasks.push_back(task);
     }
@@ -34,7 +38,7 @@ void loadTasks() {
 void saveTasks() {
     ofstream file(filename);
     for (const auto& task : tasks) {
-        file << task.id << "," << task.description << "," << task.priority << "," << task.completed << "\n";
+        file << task.id << "," << task.description << "," << task.priority << "," << task.dueDate << "," << task.completed << "\n";
     }
     file.close();
 }
@@ -47,6 +51,8 @@ void addTask() {
     getline(cin, task.description);
     cout << "Enter priority (Low/Medium/High): ";
     cin >> task.priority;
+    cout << "Enter due date (YYYY-MM-DD): ";
+    cin >> task.dueDate;
     task.completed = false;
     tasks.push_back(task);
     saveTasks();
@@ -58,7 +64,8 @@ void viewTasks() {
     for (const auto& task : tasks) {
         cout << "ID: " << task.id << " | "
              << (task.completed ? "[Completed] " : "[Pending] ")
-             << task.description << " (" << task.priority << ")\n";
+             << task.description << " (" << task.priority << ") "
+             << "Due: " << task.dueDate << "\n";
     }
 }
 
@@ -88,21 +95,29 @@ void deleteTask() {
     cout << "Task deleted!\n";
 }
 
+void sortTasksByDueDate() {
+    sort(tasks.begin(), tasks.end(), [](const Task& a, const Task& b) {
+        return a.dueDate < b.dueDate;
+    });
+    saveTasks();
+    cout << "Tasks sorted by due date!\n";
+}
+
 int main() {
     loadTasks();
     int choice;
     do {
-        cout << "\nTask Manager\n1. Add Task\n2. View Tasks\n3. Complete Task\n4. Delete Task\n5. Exit\nEnter choice: ";
+        cout << "\nTask Manager\n1. Add Task\n2. View Tasks\n3. Complete Task\n4. Delete Task\n5. Sort Tasks by Due Date\n6. Exit\nEnter choice: ";
         cin >> choice;
         switch (choice) {
             case 1: addTask(); break;
             case 2: viewTasks(); break;
             case 3: completeTask(); break;
             case 4: deleteTask(); break;
-            case 5: cout << "Exiting...\n"; break;
+            case 5: sortTasksByDueDate(); break;
+            case 6: cout << "Exiting...\n"; break;
             default: cout << "Invalid choice!\n";
         }
-    } while (choice != 5);
+    } while (choice != 6);
     return 0;
 }
-
